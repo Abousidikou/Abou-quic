@@ -1,6 +1,4 @@
-## go-quic
-
-# Start server quic
+## Start server quic
 
 ---*go mod init* 
 
