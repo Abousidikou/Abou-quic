@@ -3,18 +3,32 @@ package main
 import (
 	//	"bytes"
 	//	"encoding/binary"
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-//	"strconv"
+	"os"
+	"strconv"
+	//"crypto/md5"
+	"errors"
+	"mime/multipart"
 	"time"
 
 	"github.com/gorilla/websocket"
-	//"github.com/lucas-clemente/quic-go"
+	"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/http3"
+	//"github.com/lucas-clemente/quic-go/internal/utils"
+	"github.com/lucas-clemente/quic-go/logging"
+	"github.com/lucas-clemente/quic-go/qlog"
 )
+
+// Size is needed by the /demo/upload handler to determine the size of the uploaded file
+type Size interface {
+	Size() int64
+}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -23,34 +37,12 @@ var upgrader = websocket.Upgrader{
 
 func helloJson(w http.ResponseWriter, r *http.Request) {
 
-	/*// Origin check
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	//upgrding connection
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Connection successfully Upgraded ")
-
-	fmt.Fprintln(w, "your are connected via ws: "+ws.Subprotocol())
-	*/
 	if r.URL.Path == "/nf" {
 		http.NotFound(w, r)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Write([]byte(`{"hello": "Worl"}`))
-}
-
-func alt(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/nf" {
-		http.NotFound(w, r)
-		return
-	}
-	w.Header().Set("Alt-Svc", "h3=\":4448\"")
-	w.Write([]byte("Alt-Svc"))
+	w.Write([]byte(`{"hello": "World"}`))
 }
 
 // Generate data Byte from interger(lengh)
@@ -64,24 +56,41 @@ func generatePRData(l int) []byte {
 	return res
 }
 
+type bufferedWriteCloser struct {
+	*bufio.Writer
+	io.Closer
+}
+
+// NewBufferedWriteCloser creates an io.WriteCloser from a bufio.Writer and an io.Closer
+func NewBufferedWriteCloser(writer *bufio.Writer, closer io.Closer) io.WriteCloser {
+	return &bufferedWriteCloser{
+		Writer: writer,
+		Closer: closer,
+	}
+}
+
+func (h bufferedWriteCloser) Close() error {
+	if err := h.Writer.Flush(); err != nil {
+		return err
+	}
+	return h.Closer.Close()
+}
+
 func main() {
-	fmt.Println("Hello A server @ quic:4448")
+	fmt.Println("Serving @ quic:4448")
 
 	cert := flag.String("c", "fullchain.pem", "Enter the certificate file")
 	key := flag.String("k", "privkey.pem", "Enter the key file")
-	dir := flag.String("d", "", "Directory to serve")
+	dir := flag.String("d", ".", "Directory to serve")
+	enableQlog := flag.Bool("q", false, "Enable Qlog")
 	flag.Parse()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Welcome\n")
 	})
-	mux.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "You are on Api\n")
-	})
-	mux.HandleFunc("/json", helloJson)
 
-	mux.HandleFunc("/alt", alt)
+	mux.HandleFunc("/json", helloJson)
 
 	mux.HandleFunc("/download", func(rw http.ResponseWriter, req *http.Request) {
 		// Create ultimate result.
@@ -193,44 +202,116 @@ func main() {
 			logger.Infof("%s", body.Bytes())*/
 	})
 
-	mux.HandleFunc("/time", func(rw http.ResponseWriter, req *http.Request) {
-		fmt.Println(req.Body)
-	})
-	mux.Handle("/mysite/", http.StripPrefix("/mysite", http.FileServer(http.Dir(*dir+"/mysite"))))
+	mux.HandleFunc("/demo/upload", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			start := time.Now()
+			err := r.ParseMultipartForm(1 << 30) // 4 GB
+			if err == nil {
+				var file multipart.File
+				var hand *multipart.FileHeader
+				file, hand, err = r.FormFile("uploadfile")
+				if err == nil {
+					//defer file.Close()
+					//var size int64
+					if sizeInterface, ok := file.(Size); ok {
+						_ = sizeInterface.Size() // _ == size
+						//b := make([]byte, size)
+						//start := time.Now()
+						//i, _ := file.Read(b)
+						//fmt.Println(time.Since(start))
+						//fmt.Println("Size of file: ", i, " bytes")
 
-	/*quicConf := &quic.Config{}
-	server := http3.server{
-		Server: &http.Server{Handler:mux, Addr: ":4448" },
-		QuicConfig: quicConf,
-	}*/
-	log.Fatal(http3.ListenAndServe(":4448", *cert, *key, mux))
+						logFile, logerr := os.OpenFile("log.file", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+						f, err := os.OpenFile("./data/"+hand.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+						if err != nil || logerr != nil {
+							fmt.Println(err)
+							return
+						}
+						defer f.Close()
+						// Calling Copy method with its parameters
+						bytes, erro := io.Copy(f, file)
+						// If error is not nil then panics
+						if erro != nil {
+							panic(erro)
+						}
+
+						// Prints output
+						fmt.Printf("The number of bytes are: %d\n", bytes)
+						fmt.Println(time.Since(start))
+						logFile.WriteString("Nom du fichier: " + hand.Filename + "\n")
+						logFile.WriteString("Taille du fichier: " + strconv.FormatInt(int64(bytes), 10) + " bytes\n")
+						logFile.WriteString("Temps d'envoie: " + time.Since(start).String() + "\n\n")
+
+						//file.Read(b)
+						//md5 := md5.Sum(b)
+						//fmt.Fprintf(w, "File Received---md5:%x---Header:%v", md5, hand.Header)
+						fmt.Fprintf(w, "File Received---%v", hand.Header)
+						return
+					}
+					err = errors.New("couldn't get uploaded file size")
+				}
+			}
+			fmt.Printf("Error receiving upload: %#v", err)
+		}
+		io.WriteString(w, `<html><body><form action="/demo/upload" method="post" enctype="multipart/form-data">
+				<input type="file" name="uploadfile"><br>
+				<input type="submit">
+			</form></body></html>`)
+	})
+
+	// create file server handler
+	direc, _ := os.Getwd()
+	//fmt.Println("current path :" + direc)
+	fs := http.FileServer(http.Dir(direc + "/data"))
+	mux.Handle("/data/", http.StripPrefix("/data", fs))
+
+	mysite := http.FileServer(http.Dir(*dir + "/mysite"))
+	mux.Handle("/mysite/", http.StripPrefix("/mysite", mysite))
+
 	//log.Fatal(http3.ListenAndServe(":4448", *cert, *key, mux))
 
-	//log.Fatal(http.ListenAndServe(":4449", mux))
-
-	/*done := make(chan int,1)
-		go func(channel chan <- int){
-		fmt.Println("in goroutine")
-		quicConf := &quic.Config{}
-		server := http3.Server{
-			Server:     &http.Server{Handler: mux, Addr: ":4448" },
-			QuicConfig: quicConf,
-		}
-		log.Fatal(server.ListenAndServeTLS(*cert,*key))
-
-		fmt.Println("on channel")
-	 	channel <- 5
-		}(done)
-		fmt.Println("Waiting for go routine end")
-		s := <- done
-		fmt.Println(s)*/
-
-	/*	quicConf := &quic.Config{}
-		server := http3.Server{
-			Server:     &http.Server{Handler: mux, Addr: ":4448" },
-			QuicConfig: quicConf,
-		}
-		log.Fatal(server.ListenAndServeTLS(*cert, *key))*/
+	quicConf := &quic.Config{
+		MaxIncomingStreams:         1000000,
+		MaxIncomingUniStreams:      1000000,
+		InitialStreamReceiveWindow: 524288,
+		// MaxStreamReceiveWindow is the maximum stream-level flow control window for receiving data.
+		// If this value is zero, it will default to 6 MB.
+		//MaxStreamReceiveWindow: 6,
+		// InitialConnectionReceiveWindow is the initial size of the stream-level flow control window for receiving data.
+		// If the application is consuming data quickly enough, the flow control auto-tuning algorithm
+		// will increase the window up to MaxConnectionReceiveWindow.
+		// If this value is zero, it will default to 512 KB.
+		//InitialConnectionReceiveWindow uint64,
+		// MaxConnectionReceiveWindow is the connection-level flow control window for receiving data.
+		// If this value is zero, it will default to 15 MB.
+		//MaxConnectionReceiveWindow uint64,
+		// MaxIncomingStreams is the maximum number of concurrent bidirectional streams that a peer is allowed to open.
+		// Values above 2^60 are invalid.
+		// If not set, it will default to 100.
+		// If set to a negative value, it doesn't allow any bidirectional streams.
+		//MaxIncomingStreams int64,
+		// MaxIncomingUniStreams is the maximum number of concurrent unidirectional streams that a peer is allowed to open.
+		// Values above 2^60 are invalid.
+		// If not set, it will default to 100.
+		// If set to a negative value, it doesn't allow any unidirectional streams.
+		//MaxIncomingUniStreams int64,
+	}
+	if *enableQlog {
+		quicConf.Tracer = qlog.NewTracer(func(_ logging.Perspective, connID []byte) io.WriteCloser {
+			fmt.Println(connID)
+			filename := fmt.Sprintf("server_%s.qlog", time.Now().String())
+			f, err := os.Create(filename)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Creating qlog file %s.\n", filename)
+			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
+		})
+	}
+	server := http3.Server{
+		Server:     &http.Server{Handler: mux, Addr: ":4448"},
+		QuicConfig: quicConf,
+	}
+	log.Fatal(server.ListenAndServeTLS(*cert, *key))
 
 }
-
