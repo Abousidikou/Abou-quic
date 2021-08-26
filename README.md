@@ -4,9 +4,15 @@ It runs on 4448 serving the directory "mysite"(Musical template for demo).
 We run *download test*  and *upload test* for 13s.
 # *Download Test*
 The server generate bytes with minimum size of 8192 to 16MB which is sent on the wire.
-Every 250ms the server display data sent.
+Every 250ms the server display data sent. The client waits untils test finished before displaying speed.
+Adapting message size.
+if msg.Size() <= (1 << 24) || msg.Size() <= (total / 16) {
+			  ==> double msg size
+		}
+
 # *Upload Test*
- 
+Here, We start with sending  to the server message sized 8192(1<<13).
+
 ## Start server quic
 
 ---*go mod init* 
