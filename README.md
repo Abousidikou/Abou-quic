@@ -23,7 +23,7 @@ Here, We start with sending  to the server message sized 8192(1<<13).
 
 
 ## Client Quic
---- go client.go -u url(https://monitor.uac.bj:4448 default)
+--- go client.go -u url(https://monitor.uac.bj:4448 default) 
 --- we can access through browser.
 # Url
 - */*  Welcome
@@ -35,6 +35,7 @@ Here, We start with sending  to the server message sized 8192(1<<13).
 The function http3.ListenAndServe() start server over TCP AND QUIC, but QUIC configuration is not possible.
 The fonction server.ListenAndServeTLS() start only QUIC with QUIC Configuration possible.
 - Only navigator that knows our server as working on QUIC could contact it on QUIC.
+THe command line client works for both functions.
 
 NB:**Answer will be display on the server side and the client side(console and graphically)**
 

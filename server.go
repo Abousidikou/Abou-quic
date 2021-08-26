@@ -283,7 +283,16 @@ func main() {
 	mysite := http.FileServer(http.Dir(*dir + "/mysite"))
 	mux.Handle("/mysite/", http.StripPrefix("/mysite", mysite))
 
+	/*
+		This function start both tcp and quic
+	*/
 	//log.Fatal(http3.ListenAndServe(":4448", *cert, *key, mux))
+
+	/*
+		This part start only quic but with quicConfig which enable qlog records.
+		It doesn't works if clients haven't already being connected on tcp but it works
+		after being connected with the function above.
+	*/
 
 	quicConf := &quic.Config{
 		MaxIncomingStreams:         1000000,

@@ -13,7 +13,6 @@ import (
 
 func main() {
 	fmt.Println("Hello client")
-	q := flag.Bool("q", true, "True to see data")
 	url := flag.String("u", "https://monitor.uac.bj:4448/", "Enter url")
 	flag.Parse()
 	hclient := http.Client{
@@ -32,13 +31,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if *q {
-		fmt.Printf("Request Body: %d bytes", body.Len())
-		fmt.Println("\n", body.String())
-	} else {
-		fmt.Println("Request Body:")
-		fmt.Printf("%d bytes", body.Bytes())
-		fmt.Println(body.String())
-	}
+	fmt.Printf("Request Body: ")
+	fmt.Printf("Lenght: %d bytes", body.Len())
+	fmt.Printf("Total space allocated: %d bytes", body.Cap())
+	fmt.Println("\n", body.String())
 
 }
