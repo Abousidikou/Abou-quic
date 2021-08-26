@@ -94,21 +94,28 @@ func main() {
 
 	mux.HandleFunc("/download", func(rw http.ResponseWriter, req *http.Request) {
 		// Create ultimate result.
-
+		testFile, logerr := os.OpenFile("test.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+		if logerr != nil {
+			return
+		}
+		defer testFile.Close()
 		var StartTime = time.Now().UTC()
 		fmt.Println("StartTime: ", StartTime.String())
+		testFile.WriteString("Time: " + StartTime.String() + "\n")
 		start := StartTime
 
 		// Guarantee results are written even if function panics.
 		defer func() {
 			var EndTime = time.Now().UTC()
 			fmt.Println("EndTime: ", EndTime.String())
+			testFile.WriteString("EndTime: " + EndTime.String() + "\n")
 			//h.writeResult(data.UUID, kind, result)
 		}()
 
 		// Run measurement.
 
 		fmt.Println("Download Subtest")
+		testFile.WriteString("Download Subtest...\n")
 		var msgSize = 1 << 13
 		const every time.Duration = 250 * time.Millisecond
 
@@ -139,17 +146,17 @@ func main() {
 				//fmt.Println(bitSentTillNow)
 				// time.Since(StartTime)/time.Millisecond)  time since start in millisecond
 				//(bitSentTillNow/int64(time.Since(StartTime).Milliseconds()))*1000 nombre de bit en 1 s( nmbre de bit en ms * 1000)
-				fmt.Println("Speed : ", ((bitSentTillNow/int64(time.Since(StartTime).Milliseconds()))*1000)/1000000, " Mbits/s")
+				sped := ((bitSentTillNow / int64(time.Since(StartTime).Milliseconds())) * 1000) / 1000000
+				fmt.Println("Speed : ", sped, " Mbits/s")
+				testFile.WriteString("Speed: " + strconv.FormatInt(sped, 10) + "\n")
 				start = time.Now().UTC()
 			}
-			if int64(msgSize) >= 1<<10 {
-				continue // No further scaling is required
-			}
-			if int64(msgSize) > total/16 {
+			fmt.Println("message size:", msgSize)
+			if int64(msgSize) >= total/16 {
 				continue // message size still too big compared to sent data
 			}
 
-			if int64(msgSize) > 1<<24 {
+			if int64(msgSize) >= 1<<24 {
 				continue // message size still too big compared
 			}
 			msgSize *= 2
@@ -159,8 +166,13 @@ func main() {
 	})
 
 	mux.HandleFunc("/upload", func(rw http.ResponseWriter, req *http.Request) {
+		testFile, logerr := os.OpenFile("test.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+		if logerr != nil {
+			return
+		}
+		defer testFile.Close()
 		fmt.Println("Upload Subtest")
-
+		testFile.WriteString("Upload Subtest...\n")
 		//fmt.Println("StartTime: ", StartTime.String())
 		//start := StartTime
 
@@ -192,8 +204,10 @@ func main() {
 
 		//fmt.Println(int64(EndTime)) // do whatever you want with the binary file buf
 		//fmt.Println(strconv.FormatInt(int64(len(buf)), 10))
-		fmt.Println("Speed: ", ((int64(len(buf)*8)/int64(EndTime))*1000)/1000000, " Mbits/s")
+		sped := ((int64(len(buf)*8) / int64(EndTime)) * 1000) / 1000000
+		fmt.Println("Speed: ", sped, " Mbits/s")
 		fmt.Fprintf(rw, "Success")
+		testFile.WriteString("Speed: " + sped)
 		//fmt.Println(body)
 		//fmt.Println(time.Since(StartTime).Milliseconds())
 		/*var total int64
@@ -227,6 +241,7 @@ func main() {
 							fmt.Println(err)
 							return
 						}
+						defer logFile.Close()
 						defer f.Close()
 						// Calling Copy method with its parameters
 						bytes, erro := io.Copy(f, file)
