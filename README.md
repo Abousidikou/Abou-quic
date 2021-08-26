@@ -19,12 +19,22 @@ Here, We start with sending  to the server message sized 8192(1<<13).
 
 ---*go mod tidy*
 
----**go run server -c "your certificate" -k "your key"**
+---*go run server -c "your certificate" -k "your key" -d "file to serve(./mysite by default)"  -q true (for Qlog creation, false by default)*
 
 
-Now you can Access Enro web site template.
-
-Two Buttons *Download Test* and *Upload Test* will help lauching test.
+## Client Quic
+--- go client.go -u url(https://monitor.uac.bj:4448 default)
+--- we can access through browser.
+# Url
+- */*  Welcome
+- */json* for json test
+- */demo/upload* to upload file
+- */data* to see uploaded files
+- */mysite* for download and upload test.Two Buttons *Download Test* and *Upload Test* will help lauching test.
+## Problem
+The function http3.ListenAndServe() start server over TCP AND QUIC, but QUIC configuration is not possible.
+The fonction server.ListenAndServeTLS() start only QUIC with QUIC Configuration possible.
+- Only navigator that knows our server as working on QUIC could contact it on QUIC.
 
 NB:**Answer will be display on the server side and the client side(console and graphically)**
 
