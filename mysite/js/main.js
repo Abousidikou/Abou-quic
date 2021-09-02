@@ -13,9 +13,6 @@ function downTest(){
           console.log("ev.data Null")
           return
         }
-    document.getElementById("down1").innerHTML = ev.data.Speed; 
-    document.getElementById("down2").innerHTML = ev.data.Speed; 
-    document.getElementById("down3").innerHTML = ev.data.Speed;
     }
 
     setTimeout(function () {
