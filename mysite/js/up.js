@@ -1,21 +1,39 @@
-onmessage = function (ev) {
-	let start = performance.now()
-    fetch("https://monitor.uac.bj:4448/upload",{method: 'post', body: ev.data.toSend}).then(response=>response.text()).then(data=> {
-    let v = performance.now() - start
-    //console.log(v+ " ms")
-    let bms = (ev.data.initialMessageSize*8)/v
-    //console.log(bms+" bits/ms")
-    let bs = bms*1000
-    //console.log(bs+" bits/s")
-    let mbs = bs/1000000
-    //console.log(Math.ceil(mbs)+" Mbps")
-    //console.log(data)
-     postMessage({
-        'AppInfo': {
-          'ElapsedTime': v,  // ms
-          'Speed': Math.ceil(mbs)+ " Mbps",
-        },
-      })
-    }).catch(err=>console.log(err));
+
+onmessage = function(ev){
+    postMessage("In up new Worker()")
+    var duration;
+    var initialMessageSize = Math.pow(2, 20)
+    var dat = genData(initialMessageSize)
+    let start = performance.now()
+    test(dat,start)
 
 }
+
+
+async function test(dat,start){ 
+        let v;
+        while (true){    
+        let response = await fetch("https://monitor.uac.bj:4448/upload",{method: 'post', body: dat});
+        v = performance.now() - start
+        let data = await response.text()
+        console.log(data)
+        if (v > 13000){
+          console.log(Math.ceil(v))
+          break
+        }
+      }
+      console.log("After while") 
+      let res = await fetch("https://monitor.uac.bj:4448/getUpSpeed?id="+v);
+      let bytes = await  res.text()
+      let bms = (parseInt(bytes)*8)/parseInt(v) // bms
+      let bs = bms * 1000
+      let mbs = bs/1000000
+      console.log(Math.ceil(mbs)+" Mbps")
+  }
+  
+function genData(size){
+  let myArray = new ArrayBuffer(size);
+  let longInt8View = new Uint8Array(myArray);
+  return longInt8View
+}
+
