@@ -27,7 +27,6 @@ Here, We start with sending  to the server message sized 8192(1<<13).
 --- we can access through browser.
 # Url
 - */*  Welcome
-- */json* for json test
 - */demo/upload* to upload file
 - */data* to see uploaded files
 - */mysite* for download and upload test.Two Buttons *Download Test* and *Upload Test* will help lauching test.
@@ -36,6 +35,9 @@ The function http3.ListenAndServe() start server over TCP AND QUIC, but QUIC con
 The fonction server.ListenAndServeTLS() start only QUIC with QUIC Configuration possible.
 - Only navigator that knows our server as working on QUIC could contact it on QUIC.
 THe command line client works for both functions.
+
+## Answer
+Connecting first with http3.ListenAndServe() before server.ListenAndServeTLS()
 
 NB:**Answer will be display on the server side and the client side(console and graphically)**
 

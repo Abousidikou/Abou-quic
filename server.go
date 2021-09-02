@@ -15,7 +15,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/http3"
+	"github.com/lucas-clemente/quic-go/logging"
+	"github.com/lucas-clemente/quic-go/qlog"
 	"github.com/xyproto/sheepcounter"
 )
 
@@ -201,49 +204,49 @@ func main() {
 	})
 
 	// start server
-	log.Fatal(http3.ListenAndServe(":4448", *cert, *key, mux))
+	//log.Fatal(http3.ListenAndServe(":4448", *cert, *key, mux))
 
-	/*	quicConf := &quic.Config{
-			MaxIncomingStreams:         1000000,
-			MaxIncomingUniStreams:      1000000,
-			InitialStreamReceiveWindow: 524288,
-			// MaxStreamReceiveWindow is the maximum stream-level flow control window for receiving data.
-			// If this value is zero, it will default to 6 MB.
-			//MaxStreamReceiveWindow: 6,
-			// InitialConnectionReceiveWindow is the initial size of the stream-level flow control window for receiving data.
-			// If the application is consuming data quickly enough, the flow control auto-tuning algorithm
-			// will increase the window up to MaxConnectionReceiveWindow.
-			// If this value is zero, it will default to 512 KB.
-			//InitialConnectionReceiveWindow uint64,
-			// MaxConnectionReceiveWindow is the connection-level flow control window for receiving data.
-			// If this value is zero, it will default to 15 MB.
-			//MaxConnectionReceiveWindow uint64,
-			// MaxIncomingStreams is the maximum number of concurrent bidirectional streams that a peer is allowed to open.
-			// Values above 2^60 are invalid.
-			// If not set, it will default to 100.
-			// If set to a negative value, it doesn't allow any bidirectional streams.
-			//MaxIncomingStreams int64,
-			// MaxIncomingUniStreams is the maximum number of concurrent unidirectional streams that a peer is allowed to open.
-			// Values above 2^60 are invalid.
-			// If not set, it will default to 100.
-			// If set to a negative value, it doesn't allow any unidirectional streams.
-			//MaxIncomingUniStreams int64,
-		}
-		if *enableQlog {
-			quicConf.Tracer = qlog.NewTracer(func(_ logging.Perspective, connID []byte) io.WriteCloser {
-				fmt.Println(connID)
-				filename := fmt.Sprintf("server_%s.qlog", time.Now().String())
-				f, err := os.Create(filename)
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Printf("Creating qlog file %s.\n", filename)
-				return NewBufferedWriteCloser(bufio.NewWriter(f), f)
-			})
-		}
-		server := http3.Server{
-			Server:     &http.Server{Handler: mux, Addr: ":4448"},
-			QuicConfig: quicConf,
-		}
-		log.Fatal(server.ListenAndServeTLS(*cert, *key))*/
+	quicConf := &quic.Config{
+		MaxIncomingStreams:         1000000,
+		MaxIncomingUniStreams:      1000000,
+		InitialStreamReceiveWindow: 524288,
+		// MaxStreamReceiveWindow is the maximum stream-level flow control window for receiving data.
+		// If this value is zero, it will default to 6 MB.
+		//MaxStreamReceiveWindow: 6,
+		// InitialConnectionReceiveWindow is the initial size of the stream-level flow control window for receiving data.
+		// If the application is consuming data quickly enough, the flow control auto-tuning algorithm
+		// will increase the window up to MaxConnectionReceiveWindow.
+		// If this value is zero, it will default to 512 KB.
+		//InitialConnectionReceiveWindow uint64,
+		// MaxConnectionReceiveWindow is the connection-level flow control window for receiving data.
+		// If this value is zero, it will default to 15 MB.
+		//MaxConnectionReceiveWindow uint64,
+		// MaxIncomingStreams is the maximum number of concurrent bidirectional streams that a peer is allowed to open.
+		// Values above 2^60 are invalid.
+		// If not set, it will default to 100.
+		// If set to a negative value, it doesn't allow any bidirectional streams.
+		//MaxIncomingStreams int64,
+		// MaxIncomingUniStreams is the maximum number of concurrent unidirectional streams that a peer is allowed to open.
+		// Values above 2^60 are invalid.
+		// If not set, it will default to 100.
+		// If set to a negative value, it doesn't allow any unidirectional streams.
+		//MaxIncomingUniStreams int64,
+	}
+	if *enableQlog {
+		quicConf.Tracer = qlog.NewTracer(func(_ logging.Perspective, connID []byte) io.WriteCloser {
+			fmt.Println(connID)
+			filename := fmt.Sprintf("server_%s.qlog", time.Now().String())
+			f, err := os.Create(filename)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Creating qlog file %s.\n", filename)
+			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
+		})
+	}
+	server := http3.Server{
+		Server:     &http.Server{Handler: mux, Addr: ":4448"},
+		QuicConfig: quicConf,
+	}
+	log.Fatal(server.ListenAndServeTLS(*cert, *key))
 }
