@@ -22,7 +22,7 @@ git clone https://github.com/Abousidikou/QuicTest_Mysite.git
 
 
 ```bash
-go mod init test
+go mod init quictest
 ```
 
 ```bash
@@ -36,7 +36,7 @@ go run server -c "your certificate" -k "your key" -d "file to serve(./mysite by 
 # Start Client Quic
 On the local or client machine:
 ```bash
-Run this command go client.go -u url(https://monitor.uac.bj:4448 default) 
+go run client.go -u url(https://monitor.uac.bj:4450 default) 
 ```
 we can access through browser.
 
