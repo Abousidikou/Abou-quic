@@ -6,9 +6,11 @@ We run *download test*  and *upload test* for 13s.
 The server generate bytes with minimum size of 8192 to 16MB which is sent on the wire.
 Every 250ms the server display data sent. The client waits untils test finished before displaying speed.
 Adapting message size.
+```bash
 if msg.Size() <= (1 << 24) || msg.Size() <= (total / 16) {
 			  ==> double msg size
 		}
+```
 
 ## Upload Test
 Here, We start with sending  to the server message sized 8192(1<<13).
