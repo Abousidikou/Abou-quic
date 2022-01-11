@@ -15,10 +15,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lucas-clemente/quic-go"
+	//"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/http3"
-	"github.com/lucas-clemente/quic-go/logging"
-	"github.com/lucas-clemente/quic-go/qlog"
+	//"github.com/lucas-clemente/quic-go/logging"
+	//"github.com/lucas-clemente/quic-go/qlog"
 	"github.com/xyproto/sheepcounter"
 )
 
@@ -75,7 +75,7 @@ func main() {
 	key := flag.String("k", "privkey.pem", "Enter the key file")
 	dir := flag.String("d", ".", "Directory to serve")
 	port := flag.Int("p", 4450 , "Port to listen on")
-	enableQlog := flag.Bool("q", false, "Enable Qlog")
+//	enableQlog := flag.Bool("q", false, "Enable Qlog")
 	flag.Parse()
 
 	mux := http.NewServeMux()
