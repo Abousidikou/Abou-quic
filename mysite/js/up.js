@@ -13,7 +13,7 @@ onmessage = function(ev){
 async function test(dat,start){ 
         let v;
         while (true){    
-        let response = await fetch("https://monitor.uac.bj:4448/upload",{method: 'post', body: dat});
+        let response = await fetch("https://monitor.uac.bj:4450/upload",{method: 'post', body: dat});
         v = performance.now() - start
         let data = await response.text()
         console.log(data)
@@ -23,7 +23,7 @@ async function test(dat,start){
         }
       }
       console.log("After while") 
-      let res = await fetch("https://monitor.uac.bj:4448/getUpSpeed?id="+v);
+      let res = await fetch("https://monitor.uac.bj:4450/getUpSpeed?id="+v);
       let bytes = await  res.text()
       let bms = (parseInt(bytes)*8)/parseInt(v) // bms
       let bs = bms * 1000

@@ -69,19 +69,19 @@ func (h bufferedWriteCloser) Close() error {
 }
 
 func main() {
-	fmt.Println("Serving @ quic:4448")
+	fmt.Println("Serving @ quic:4450")
 
 	cert := flag.String("c", "fullchain.pem", "Enter the certificate file")
 	key := flag.String("k", "privkey.pem", "Enter the key file")
 	dir := flag.String("d", ".", "Directory to serve")
-	port := flag.Int("p", 4450 , "Port to listen on")
-//	enableQlog := flag.Bool("q", false, "Enable Qlog")
+	port := flag.Int("p", 4450, "Port to listen on")
+	//	enableQlog := flag.Bool("q", false, "Enable Qlog")
 	flag.Parse()
 
 	mux := http.NewServeMux()
 	//mux := router.NewRouter().StrictSlash(true)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Welcome\n")
+		fmt.Fprintf(w, "Welcome to QUIC Test API\n")
 	})
 
 	//serving data directory
@@ -205,8 +205,8 @@ func main() {
 	})
 
 	// start server
-	 ad := ":"+ strconv.Itoa(*port)
-	log.Fatal(http3.ListenAndServe(ad , *cert, *key, mux))
+	ad := ":" + strconv.Itoa(*port)
+	log.Fatal(http3.ListenAndServe(ad, *cert, *key, mux))
 
 	/*quicConf := &quic.Config{
 		MaxIncomingStreams:         1000000,

@@ -14,7 +14,7 @@
 function downTest(){
 	console.log("Test Start")
 	let start = performance.now()
-	fetch("https://monitor.uac.bj:4448/download").then(response=>response.blob()).then(data=>{
+	fetch("https://monitor.uac.bj:4450/download").then(response=>response.blob()).then(data=>{
 	let v = performance.now() - start
 	//console.log(data)
 	//console.log(data.size*8)
@@ -37,7 +37,7 @@ function upTest(){
 	console.log("Upload_Test...")
 	var bl = new Blob([databuf], {type: "application/octet-stream"});
     let start = performance.now()
-    fetch("https://monitor.uac.bj:4448/upload",{method: 'post', body: bl}).then(response=>response.text()).then(data=> {
+    fetch("https://monitor.uac.bj:4450/upload",{method: 'post', body: bl}).then(response=>response.text()).then(data=> {
     console.log(data)
     let v = performance.now() - start
     console.log(v+ " ms")
@@ -65,7 +65,7 @@ let controller = new AbortController();
 setTimeout(() => controller.abort(), 10000);
 
 try {
-  let response = await fetch('https://monitor.uac.bj:4448/uploadA', {
+  let response = await fetch('https://monitor.uac.bj:4450/uploadA', {
     signal: controller.signal
   });
 } catch(err) {

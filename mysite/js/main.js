@@ -18,7 +18,7 @@ function downTest(){
     setTimeout(function () {
     console.log('In down setTimeout')
         //https://randomuser.me/api/
-    fetch("https://monitor.uac.bj:4448/getDownSpeed").then(response => response.text()).then(data=>{
+    fetch("https://monitor.uac.bj:4450/getDownSpeed").then(response => response.text()).then(data=>{
         console.log(data+" Mbps")
     });
     worker.terminate()
