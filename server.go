@@ -74,6 +74,7 @@ func main() {
 	cert := flag.String("c", "fullchain.pem", "Enter the certificate file")
 	key := flag.String("k", "privkey.pem", "Enter the key file")
 	dir := flag.String("d", ".", "Directory to serve")
+	port := flag.Int("p", 4450 , "Port to listen on")
 	enableQlog := flag.Bool("q", false, "Enable Qlog")
 	flag.Parse()
 
@@ -204,7 +205,8 @@ func main() {
 	})
 
 	// start server
-	//log.Fatal(http3.ListenAndServe(":4448", *cert, *key, mux))
+	// ad := ":"+ strconv.Itoa(*port)
+	//log.Fatal(http3.ListenAndServe(ad , *cert, *key, mux))
 
 	quicConf := &quic.Config{
 		MaxIncomingStreams:         1000000,
@@ -244,8 +246,9 @@ func main() {
 			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
 		})
 	}
+	ad := fmt.Sprint(":", *port)
 	server := http3.Server{
-		Server:     &http.Server{Handler: mux, Addr: ":4448"},
+		Server:     &http.Server{Handler: mux, Addr: *port},
 		QuicConfig: quicConf,
 	}
 	log.Fatal(server.ListenAndServeTLS(*cert, *key))
