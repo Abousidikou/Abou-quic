@@ -246,9 +246,9 @@ func main() {
 			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
 		})
 	}
-	ad := fmt.Sprint(":", *port)
+	ad := ":"+ strconv.Itoa(*port)
 	server := http3.Server{
-		Server:     &http.Server{Handler: mux, Addr: *port},
+		Server:     &http.Server{Handler: mux, Addr: ad},
 		QuicConfig: quicConf,
 	}
 	log.Fatal(server.ListenAndServeTLS(*cert, *key))
