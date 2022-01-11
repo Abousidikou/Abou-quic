@@ -205,10 +205,10 @@ func main() {
 	})
 
 	// start server
-	// ad := ":"+ strconv.Itoa(*port)
-	//log.Fatal(http3.ListenAndServe(ad , *cert, *key, mux))
+	 ad := ":"+ strconv.Itoa(*port)
+	log.Fatal(http3.ListenAndServe(ad , *cert, *key, mux))
 
-	quicConf := &quic.Config{
+	/*quicConf := &quic.Config{
 		MaxIncomingStreams:         1000000,
 		MaxIncomingUniStreams:      1000000,
 		InitialStreamReceiveWindow: 524288,
@@ -251,5 +251,5 @@ func main() {
 		Server:     &http.Server{Handler: mux, Addr: ad},
 		QuicConfig: quicConf,
 	}
-	log.Fatal(server.ListenAndServeTLS(*cert, *key))
+	log.Fatal(server.ListenAndServeTLS(*cert, *key))*/
 }
