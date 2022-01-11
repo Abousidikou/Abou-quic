@@ -15,7 +15,8 @@ if msg.Size() <= (1 << 24) || msg.Size() <= (total / 16) {
 ## Upload Test
 Here, We start with sending  to the server message sized 8192(1<<13).
 
-# Start server quic
+# Start server QUIC and TCP together
+The server will start with TCP, the header alt will tell the client to use QUIC for next Communication
 
 - Clone the repository
 ```bash
@@ -34,6 +35,11 @@ go mod tidy
 go run server -c "your certificate" -k "your key" -d "file to serve(./mysite by default)"  -q true (for Qlog creation, false by default)
 ```
 
+# Start Server on Only QUIC 
+Decomment thos lines:
+```bash
+Line 18, 20, 21, 78, 211-254
+```
 
 # Start Client Quic
 On the local or client machine:
