@@ -55,7 +55,7 @@ we can access through browser.
 - */mysite* for download and upload test.Two Buttons *Download Test* and *Upload Test* will help lauching test.
 
 ## Problem
-The function http3.ListenAndServe() start server over TCP AND QUIC, but QUIC configuration is not possible.
+The function http3.ListenAndServe() start server over TCP AND QUIC, but QUIC default configuration modifying is not possible.
 The fonction server.ListenAndServeTLS() start only QUIC with QUIC Configuration possible.
 Only navigator that knows our server as working on QUIC could contact it on QUIC.
 THe command line client works for both functions.
